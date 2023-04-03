@@ -21,6 +21,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import WalletDialog from "./components/WalletDialog";
 import { formatAddress } from "./utils/format";
+import useBitcoinWallet from './hooks/useBitcoinWallet';
 
 // const BACKEND_URL = 'http://localhost:5001/aptosland-3eff6/us-central1/verify';
 const BACKEND_URL = 'https://us-central1-aptosland-3eff6.cloudfunctions.net/verify';
@@ -32,7 +33,8 @@ const App: FC = () => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string>();
   const [discordId, setDiscordId] = useState<string>();
-  const { connect, connected, account, signMessage } = useWallet();
+  // const { connect, connected, account, signMessage } = useWallet();
+  const { connect, connected, account, signMessage } = useBitcoinWallet();
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const getDiscordUser = useCallback(async (accessToken: string) => {
     const getUserResult = await axios.get(`${DISCORD_URL}/@me`, {
@@ -69,28 +71,29 @@ const App: FC = () => {
 
     if (connected) {
       setVerifying(true);
-      signMessage({
-        nonce: "nonce",
-        message:
-          "Please sign this message for https://connect.aptosland.io to verify your assets.",
-      }).then((signature) => {
-        axios
-          .post(BACKEND_URL, {
-            accessToken,
-            discordServerId,
-            address: account?.address,
-            signature: (signature as SignMessageResponse).signature,
-            publicKey: account?.publicKey,
-          })
-          .then(() => setDone(true))
-          .catch((error) => setError(error.message))
-          .finally(() => setVerifying(false));
-      });
+      signMessage("Please sign this message for https://connect.aptosland.io to verify your assets.")
+        .then((signature: any) => {
+          axios
+            .post(BACKEND_URL, {
+              accessToken,
+              discordServerId,
+              address: account?.address,
+              signature: (signature as SignMessageResponse).signature,
+              publicKey: account?.publicKey,
+            })
+            .then(() => setDone(true))
+            .catch((error) => setError(error.message))
+            .finally(() => setVerifying(false));
+        })
+        .catch((error:any) => {
+          setError(error.message)
+          console.log('Sign ERR', error)
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getDiscordUser, connected]);
 
-  const handleConnectWallet = (wallet: WalletName<string> | undefined) => {
+  const handleConnectWallet = (wallet: WalletName<string> | string | undefined) => {
     if (wallet) {
       connect(wallet);
       setShowWalletDialog(false);

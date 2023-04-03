@@ -29,13 +29,13 @@ const wallets = [
   new FewchaWalletAdapter(),
   new HippoExtensionWalletAdapter(),
   new PontemWalletAdapter(),
-  new SpikaWalletAdapter(),
-  new RiseWalletAdapter(),
-  new FletchWalletAdapter(),
-  new TokenPocketWalletAdapter(),
-  new ONTOWalletAdapter(),
-  new BloctoWalletAdapter(),
-  new SafePalWalletAdapter(),
+  // new SpikaWalletAdapter(),
+  // new RiseWalletAdapter(),
+  // new FletchWalletAdapter(),
+  // new TokenPocketWalletAdapter(),
+  // new ONTOWalletAdapter(),
+  // new BloctoWalletAdapter(),
+  // new SafePalWalletAdapter(),
 ];
 
 globalThis.Buffer = Buffer;

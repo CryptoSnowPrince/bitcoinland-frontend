@@ -1,35 +1,38 @@
 import { useWallet, WalletName } from "@manahippo/aptos-wallet-adapter";
+// import { useBitcoinWallet } from "../hooks/useBitcoinWallet";
 import { Dialog, DialogTitle, List, ListItem, ListItemText } from "@mui/material";
+import useBitcoinWallet from "../hooks/useBitcoinWallet";
 export interface SimpleDialogProps {
-    open: boolean;
-    onClose: (wallet: WalletName<string> | undefined)  => void;
-  }
+  open: boolean;
+  onClose: (wallet: WalletName<string> | string | undefined) => void;
+}
 
 const WalletDialog = (props: SimpleDialogProps) => {
-    const { onClose, open } = props;
-    const {wallets } = useWallet();
-  
-    const handleClose = () => {
-      onClose(undefined);
-    };
-  
-    const handleClick = (name: WalletName<string>) => {
-        onClose(name);
-    };
-  
-    return (
-      <Dialog onClose={handleClose} open={open}>
-        <DialogTitle>Select your APTOS Wallet</DialogTitle>
-        <List sx={{ pt: 0 }}>
-          {wallets.map((wallet) => {
-            const option = wallet.adapter;
-            return <ListItem button onClick={() => handleClick(option.name)} key={option.name}>
-              <ListItemText primary={option.name} />
-            </ListItem>
-            })}
-        </List>
-      </Dialog>
-    );
-  }
+  const { onClose, open } = props;
+  // const {wallets } = useWallet();
+  const { wallets } = useBitcoinWallet();
 
-  export default WalletDialog;
+  const handleClose = () => {
+    onClose(undefined);
+  };
+
+  const handleClick = (name: WalletName<string> | string) => {
+    onClose(name);
+  };
+
+  return (
+    <Dialog onClose={handleClose} open={open}>
+      <DialogTitle>Select your Bitcoin Wallet</DialogTitle>
+      <List sx={{ pt: 0 }}>
+        {wallets.map((wallet) => {
+          // const option = wallet.adapter;
+          return <ListItem button onClick={() => handleClick(wallet)} key={wallet}>
+            <ListItemText primary={wallet} />
+          </ListItem>
+        })}
+      </List>
+    </Dialog>
+  );
+}
+
+export default WalletDialog;
