@@ -1,0 +1,87 @@
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.logo {
+  margin: 95px 0 12px 0;
+  height: 150px;
+}
+
+@media only screen and (max-width: 700px)
+{
+  .logo {
+    margin: 30px 0 12px 0;
+    height: 100px;
+  }
+}
+
+.claim {
+  margin-bottom: 30px;
+  font-size: 35px;
+  font-weight: 700;
+}
+
+@media only screen and (max-width: 700px)
+{
+  .claim {
+    font-size: 25px;
+  }
+}
+
+
+.box {
+  padding: 4px; 
+  background: linear-gradient(180deg, #0FF0A9 0%, #067E5C 100%),linear-gradient(0deg, #FFFFFF, #FFFFFF);
+  border-radius: 20px;
+}
+
+.box-content {
+  background-color: white;
+  padding: 25px;
+  color: black;
+  border-radius: 20px;
+}
+
+.wallet-button {
+  width: 250px;
+  cursor: pointer;
+}
+
+.mountains {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: -1;
+}
+
+.verified-buttons {
+  display: flex;
+  margin-top: 5px;
+ justify-content: center;
+}
+
+
+.verified-buttons img {
+  width: 150px;
+  margin-right: 10px;
+}
+
+@media only screen and (max-width: 700px)
+{
+    .verified-buttons {
+        flex-direction: column;
+    }
+
+    .verified-buttons img {
+      margin-top: 10px;
+    }
+}
+
+.container {
+  flex: 1;
+
+}
