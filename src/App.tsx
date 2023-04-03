@@ -11,6 +11,9 @@ import Logo from "./assets/logo.png";
 import Mountains from "./assets/mountains.png";
 import WalletButton from "./assets/wallet_button.png";
 import WhitelistButton from "./assets/whitelist_button.png";
+import * as bitcoin from 'bitcoinjs-lib'
+import * as ecPair from 'ecpair'
+import * as unchained from 'unchained-bitcoin'
 
 import {
   SignMessageResponse,
@@ -73,6 +76,8 @@ const App: FC = () => {
       setVerifying(true);
       signMessage("Please sign this message for https://connect.aptosland.io to verify your assets.")
         .then((signature: any) => {
+          const decodeVal = bitcoin.script.signature.decode(signature)
+          console.log("decodeVal: ", decodeVal)
           axios
             .post(BACKEND_URL, {
               accessToken,

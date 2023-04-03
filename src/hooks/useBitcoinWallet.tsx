@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { StacksSessionState, authenticate } from 'micro-stacks/connect'
 import create from 'zustand'
-import bitcoin from '@btcd.io/bitcoinjs-lib'
 
 export const appDetails = {
     name: 'Bitcoin Land',
@@ -15,7 +14,7 @@ const useBitcoinWallet = () => {
     const [connected, setConnected] = useState(false);
     const [publicKey, setPublicKey] = useState("");
     const [address, setAddress] = useState("");
-    const [signMessage, setSignMessage] = useState();
+    const [signMessage, setSignMessage] = useState(unisat.signMessage);
 
     const getBasicInfo = async () => {
         const unisat = (window as any).unisat;
