@@ -83,7 +83,7 @@ const App: FC = () => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string>();
   const [discordId, setDiscordId] = useState<string>();
-  const { connect, connected, account, signMessage } = useBitcoinWallet();
+  const { connect, connected, account, signMessage, wallet } = useBitcoinWallet();
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const getDiscordUser = useCallback(async (accessToken: string) => {
     const getUserResult = await axios.get(`${DISCORD_URL}/@me`, {
@@ -121,14 +121,15 @@ const App: FC = () => {
     if (connected) {
       setVerifying(true);
       signMessage(SIGN_TEXT)
-        .then(async (signature: any) => {
+        .then(async ({ signedMessage, publicKey }) => {
           console.log('[prince]: account', account.address, account.publicKey)
           axios.post(BACKEND_URL, {
             accessToken,
             discordServerId,
             address: account.address,
-            signature: signature,
-            publicKey: account.publicKey,
+            signature: signedMessage,
+            publicKey: publicKey ? publicKey : account.publicKey,
+            wallet
           })
             .then((res) => {
               setDone(true)

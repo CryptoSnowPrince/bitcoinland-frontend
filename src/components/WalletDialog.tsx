@@ -1,5 +1,4 @@
 import { WalletName } from "@manahippo/aptos-wallet-adapter";
-// import { useBitcoinWallet } from "../hooks/useBitcoinWallet";
 import { Dialog, DialogTitle, List, ListItem, ListItemText } from "@mui/material";
 import useBitcoinWallet from "../hooks/useBitcoinWallet";
 export interface SimpleDialogProps {

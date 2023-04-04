@@ -1,9 +1,17 @@
 import { useCallback, useRef, useState } from "react";
-import { UserData } from '@stacks/auth';
 import { AppConfig, SignatureData, UserSession, showConnect, openSignatureRequestPopup as signMessageHiro } from '@stacks/connect';
-import { validateStacksAddress as isValidStacksAddress } from '@stacks/transactions';
 import { StacksMainnet } from '@stacks/network';
+import { AddressPurposes, getAddress } from 'sats-connect'
+
 import { verifyMessageSignatureRsv } from '@stacks/encryption';
+
+//////////////////////////////
+// Xverse Wallet
+//////////////////////////////
+
+//////////////////////////////
+// Hiro Wallet
+//////////////////////////////
 
 export const appDetails = {
     name: 'Bitcoin Land',
@@ -27,6 +35,13 @@ function getAccountInfo(userData: any, network: string) {
     return { btcAddressP2tr, btcPublicKeyP2tr };
 }
 
+//////////////////////////////
+// Unisat Wallet
+//////////////////////////////
+
+//////////////////////////////
+// Wallets
+//////////////////////////////
 const useBitcoinWallet = () => {
 
     const unisat = (window as any).unisat;
@@ -40,31 +55,30 @@ const useBitcoinWallet = () => {
     const [hasSearchedForExistingSession, setHasSearchedForExistingSession] = useState(false);
 
     const signMessage = useCallback(async (message: string) => {
+        let signedMessage_ = ''
+        let publicKey_ = ''
         switch (walletName) {
             case 'Unisat':
-                return (window as any).unisat.signMessage(message)
+                signedMessage_ = await (window as any).unisat.signMessage(message)
+                break;
             case 'Xverse':
-                return null;
             case 'Hiro':
-                let signedMessage = ''
                 await signMessageHiro({
                     message,
                     network: new StacksMainnet(),
                     userSession,
                     onFinish(data: SignatureData) {
                         console.log('SignatureData: ', data)
-                        signedMessage = data.signature
+                        signedMessage_ = data.signature
+                        publicKey_ = data.publicKey
                         setPublicKey(data.publicKey)
-                        const publicKey = data.publicKey
-                        const signature = data.signature
-                        const verified = verifyMessageSignatureRsv({ message, publicKey, signature });
-                        console.log("verified: ", verified)
                     }
                 });
-                return signedMessage
+                break;
             default:
-                return null;
+                break;
         }
+        return { signedMessage: signedMessage_, publicKey: publicKey_ }
     }, [walletName])
 
     const selfRef = useRef<{ accounts: string[] }>({
@@ -121,8 +135,39 @@ const useBitcoinWallet = () => {
                 console.log('result: ', result)
                 handleAccountsChanged(name, result);
                 break;
+            // case 'Xverse':
+            // if (isSigningIn) {
+            //     console.warn('Attempted to sign in while sign is is in progress.');
+            //     return;
+            // }
+            // setIsSigningIn(true);
+            // await getAddress({
+            //     payload: {
+            //         purposes: [AddressPurposes.ORDINALS, AddressPurposes.PAYMENT],
+            //         message: 'Address for receiving Ordinals and payments',
+            //         network: {
+            //             type: 'Mainnet',
+            //             address: 'Mainnet'
+            //         },
+            //     },
+            //     onFinish: (response: any) => {
+            //         console.log("onFinish Xverse connect", response)
+
+            //         setIsSigningIn(false);
+
+            //         setAddress(response.addresses[0].address)
+            //         setPublicKey(response.addresses[0].publicKey)
+            //         setConnected(true);
+            //     },
+            //     onCancel: () => {
+            //         console.log("onCancel Xverse connect")
+            //         setIsSigningIn(false);
+            //         setConnected(false);
+            //     },
+            // });
+
+            // break;
             case 'Xverse':
-                break;
             case 'Hiro':
                 if (isSigningIn) {
                     console.warn('Attempted to sign in while sign is is in progress.');
@@ -145,7 +190,6 @@ const useBitcoinWallet = () => {
                         const retVal = getAccountInfo(userData, networkName);
                         console.log("onFinish connect", userData, retVal)
                         setAddress(retVal.btcAddressP2tr as string)
-                        setPublicKey(retVal.btcPublicKeyP2tr as string)
                         setConnected(true);
                     },
                     onCancel() {
@@ -161,7 +205,6 @@ const useBitcoinWallet = () => {
 
                                 const retVal2 = getAccountInfo(userData, networkName);
                                 setAddress(retVal2.btcAddressP2tr as string)
-                                setPublicKey(retVal2.btcPublicKeyP2tr as string)
                                 setConnected(true);
                             }
 
@@ -175,7 +218,7 @@ const useBitcoinWallet = () => {
         }
     }, [unisat, handleAccountsChanged, isSigningIn, hasSearchedForExistingSession]);
 
-    return { connected, account: { address: address, publicKey: publicKey }, signMessage, wallets, connect, disconnect }
+    return { wallet: walletName, connected, account: { address: address, publicKey: publicKey }, signMessage, wallets, connect, disconnect }
 };
 
 export default useBitcoinWallet;
