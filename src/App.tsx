@@ -164,7 +164,7 @@ const App: FC = () => {
           <img src={Heart} alt="logo" className="logo" />
           <div className="claim">Wallet Verified</div>
           <Typography variant="h4">
-            Please check the Aptos Verification channel in
+            Please check the Bitcoin Verification channel in
             <br />
             discord for your role status.
           </Typography>
@@ -194,7 +194,7 @@ const App: FC = () => {
         <Header />
         <img src={Logo} alt="logo" className="logo" />
         <div className="claim">
-          Welcome to Aptos Land
+          Welcome to Bitcoin Land
           <br />
           verification!
         </div>

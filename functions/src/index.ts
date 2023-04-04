@@ -50,7 +50,7 @@ export const verify = functions.https.onRequest((request, response) =>
         signature: string
       ): boolean => {
         try {
-          const message = `APTOS\nmessage: Please sign this message for https://connect.aptosland.io to verify your assets.\nnonce: nonce`;
+          const message = `BITCOIN\nmessage: Please sign this message for https://connect.aptosland.io to verify your assets.\nnonce: nonce`;
           return tweetnacl.sign.detached.verify(
             Buffer.from(message),
             Buffer.from(signature!.slice(2), 'hex'),
