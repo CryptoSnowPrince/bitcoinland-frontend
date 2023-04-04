@@ -13,7 +13,7 @@ import WalletButton from "./assets/wallet_button.png";
 import WhitelistButton from "./assets/whitelist_button.png";
 
 import {
-  SignMessageResponse,
+  // SignMessageResponse,
   WalletName
 } from "@manahippo/aptos-wallet-adapter";
 import Footer from "./components/Footer";
