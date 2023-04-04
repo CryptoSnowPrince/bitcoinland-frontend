@@ -1,4 +1,4 @@
-import { useWallet, WalletName } from "@manahippo/aptos-wallet-adapter";
+import { WalletName } from "@manahippo/aptos-wallet-adapter";
 // import { useBitcoinWallet } from "../hooks/useBitcoinWallet";
 import { Dialog, DialogTitle, List, ListItem, ListItemText } from "@mui/material";
 import useBitcoinWallet from "../hooks/useBitcoinWallet";
@@ -9,7 +9,6 @@ export interface SimpleDialogProps {
 
 const WalletDialog = (props: SimpleDialogProps) => {
   const { onClose, open } = props;
-  // const {wallets } = useWallet();
   const { wallets } = useBitcoinWallet();
 
   const handleClose = () => {

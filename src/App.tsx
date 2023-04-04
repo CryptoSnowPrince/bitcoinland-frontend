@@ -3,6 +3,7 @@ import { Typography } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import axios from "axios";
+// import { SimpleKeyring } from '@unisat/bitcoin-simple-keyring'
 import { FC, useCallback, useEffect, useState } from "react";
 import "./App.css";
 import FollowUsButton from "./assets/followUs_button.png";
@@ -11,13 +12,9 @@ import Logo from "./assets/logo.png";
 import Mountains from "./assets/mountains.png";
 import WalletButton from "./assets/wallet_button.png";
 import WhitelistButton from "./assets/whitelist_button.png";
-import * as bitcoin from 'bitcoinjs-lib'
-import * as ecPair from 'ecpair'
-import * as unchained from 'unchained-bitcoin'
 
 import {
   SignMessageResponse,
-  useWallet,
   WalletName
 } from "@manahippo/aptos-wallet-adapter";
 import Footer from "./components/Footer";
@@ -30,13 +27,13 @@ import useBitcoinWallet from './hooks/useBitcoinWallet';
 const BACKEND_URL = 'https://us-central1-aptosland-3eff6.cloudfunctions.net/verify';
 
 const DISCORD_URL = "https://discord.com/api/oauth2";
+const SIGN_TEXT = "Please sign this message for https://connect.aptosland.io to verify your assets."
 
 const App: FC = () => {
   const [verifying, setVerifying] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string>();
   const [discordId, setDiscordId] = useState<string>();
-  // const { connect, connected, account, signMessage } = useWallet();
   const { connect, connected, account, signMessage } = useBitcoinWallet();
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const getDiscordUser = useCallback(async (accessToken: string) => {
@@ -74,10 +71,10 @@ const App: FC = () => {
 
     if (connected) {
       setVerifying(true);
-      signMessage("Please sign this message for https://connect.aptosland.io to verify your assets.")
-        .then((signature: any) => {
-          const decodeVal = bitcoin.script.signature.decode(signature)
-          console.log("decodeVal: ", decodeVal)
+      signMessage(SIGN_TEXT)
+        .then(async (signature: any) => {
+          // const keyring = new SimpleKeyring();
+          // const retVal = await keyring.verifyMessage(account.publicKey, SIGN_TEXT, signature);
           axios
             .post(BACKEND_URL, {
               accessToken,
@@ -90,7 +87,7 @@ const App: FC = () => {
             .catch((error) => setError(error.message))
             .finally(() => setVerifying(false));
         })
-        .catch((error:any) => {
+        .catch((error: any) => {
           setError(error.message)
           console.log('Sign ERR', error)
         });
@@ -99,6 +96,7 @@ const App: FC = () => {
   }, [getDiscordUser, connected]);
 
   const handleConnectWallet = (wallet: WalletName<string> | string | undefined) => {
+    console.log('[prince] handleConnectWallet: ')
     if (wallet) {
       connect(wallet);
       setShowWalletDialog(false);

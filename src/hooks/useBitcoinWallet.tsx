@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { StacksSessionState, authenticate } from 'micro-stacks/connect'
-import create from 'zustand'
+// import create from 'zustand'
 
 export const appDetails = {
     name: 'Bitcoin Land',
@@ -11,10 +11,23 @@ const useBitcoinWallet = () => {
 
     const unisat = (window as any).unisat;
 
+    const [walletName, setWalletName] = useState('');
     const [connected, setConnected] = useState(false);
     const [publicKey, setPublicKey] = useState("");
     const [address, setAddress] = useState("");
-    const [signMessage, setSignMessage] = useState(unisat.signMessage);
+
+    const signMessage = useCallback(async (message: string) => {
+        switch (walletName) {
+            case 'Unisat':
+                return (window as any).unisat.signMessage(message)
+            case 'Xverse':
+                return null;
+            case 'Hiro':
+                return null;
+            default:
+                return null;
+        }
+    }, [walletName])
 
     const getBasicInfo = async () => {
         const unisat = (window as any).unisat;
@@ -30,6 +43,7 @@ const useBitcoinWallet = () => {
     });
     const self = selfRef.current;
     const handleAccountsChanged = useCallback((name: string, data: string[] | StacksSessionState | any) => {
+        console.log('[prince] handleAccountsChanged: ', name, data)
         switch (name) {
             case 'Unisat':
                 const _accounts = data as string[]
@@ -40,28 +54,26 @@ const useBitcoinWallet = () => {
                 self.accounts = _accounts;
                 if (_accounts.length > 0) {
                     setConnected(true);
-        
+
                     setAddress(_accounts[0]);
-        
+
                     getBasicInfo();
-                    setSignMessage((window as any).unisat.signMessage)
                 } else {
                     setConnected(false);
                 }
                 break;
             case 'Xverse':
                 const _sessionXverse = data as any
-                if(!_sessionXverse) return;
-                if(_sessionXverse.profile.btcAddress.p2tr.mainnet || _sessionXverse.profile.btcPublickey.p2tr.mainnet) {
+                if (!_sessionXverse) return;
+                if (_sessionXverse.profile.btcAddress.p2tr.mainnet && _sessionXverse.profile.btcPublickey.p2tr.mainnet) {
                     setConnected(true);
                     setAddress(_sessionXverse.profile.btcAddress.p2tr.mainnet)
                     setPublicKey(_sessionXverse.profile.btcPublickey.p2tr.mainnet)
-                    setSignMessage((window as any).unisat.signMessage)
                 }
                 break;
             case 'Hiro':
                 const _sessionHiro = data as any
-                if(!_sessionHiro) return;
+                if (!_sessionHiro) return;
                 break;
             default:
                 break;
@@ -74,16 +86,17 @@ const useBitcoinWallet = () => {
         'Hiro'
     ];
 
-    const disconnect = useCallback(async () => {
+    const disconnect = useCallback(async (name: string) => {
         console.log('disconnect')
     }, []);
 
     const connect = useCallback(async (name: string) => {
+        console.log('[prince] connect: ', name)
+        setWalletName(name)
         switch (name) {
             case 'Unisat':
-                console.log('connect')
                 const result = await unisat.requestAccounts();
-                console.log('result', result)
+                console.log('result: ', result)
                 handleAccountsChanged(name, result);
                 break;
             case 'Xverse':
