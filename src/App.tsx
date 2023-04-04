@@ -3,7 +3,6 @@ import { Typography } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import axios from "axios";
-// import { SimpleKeyring } from '@unisat/bitcoin-simple-keyring'
 import { FC, useCallback, useEffect, useState } from "react";
 import "./App.css";
 import FollowUsButton from "./assets/followUs_button.png";
@@ -73,16 +72,13 @@ const App: FC = () => {
       setVerifying(true);
       signMessage(SIGN_TEXT)
         .then(async (signature: any) => {
-          // const retVal = await verifyMessage(account.publicKey, SIGN_TEXT, signature);
-          // console.log('[prince] verifyMessage', retVal)
-          axios
-            .post(BACKEND_URL, {
-              accessToken,
-              discordServerId,
-              address: account?.address,
-              signature: (signature as SignMessageResponse).signature,
-              publicKey: account?.publicKey,
-            })
+          axios.post(BACKEND_URL, {
+            accessToken,
+            discordServerId,
+            address: account?.address,
+            signature: (signature as SignMessageResponse).signature,
+            publicKey: account?.publicKey,
+          })
             .then(() => setDone(true))
             .catch((error) => setError(error.message))
             .finally(() => setVerifying(false));

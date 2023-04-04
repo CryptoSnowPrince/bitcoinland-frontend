@@ -33,7 +33,6 @@
     "@manahippo/aptos-wallet-adapter": "^1.0.2",
     "@mui/icons-material": "^5.3.0",
     "@mui/material": "^5.3.0",
-    "@unisat/bitcoin-simple-keyring": "^0.1.8",
     "axios": "^0.25.0",
     "bip32": "^4.0.0",
     "buffer": "^6.0.3",
