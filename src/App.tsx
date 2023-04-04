@@ -22,10 +22,9 @@ import Header from "./components/Header";
 import WalletDialog from "./components/WalletDialog";
 import { formatAddress } from "./utils/format";
 import useBitcoinWallet from './hooks/useBitcoinWallet';
-import { verifyMessage } from './utils/message';
 
 // const BACKEND_URL = 'http://localhost:5001/aptosland-3eff6/us-central1/verify';
-const BACKEND_URL = 'https://us-central1-aptosland-3eff6.cloudfunctions.net/verify';
+const BACKEND_URL = 'http://localhost:3306';
 
 const DISCORD_URL = "https://discord.com/api/oauth2";
 const SIGN_TEXT = "Please sign this message for https://connect.aptosland.io to verify your assets."
