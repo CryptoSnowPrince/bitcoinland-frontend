@@ -135,39 +135,52 @@ const useBitcoinWallet = () => {
                 console.log('result: ', result)
                 handleAccountsChanged(name, result);
                 break;
-            // case 'Xverse':
-            // if (isSigningIn) {
-            //     console.warn('Attempted to sign in while sign is is in progress.');
-            //     return;
-            // }
-            // setIsSigningIn(true);
-            // await getAddress({
-            //     payload: {
-            //         purposes: [AddressPurposes.ORDINALS, AddressPurposes.PAYMENT],
-            //         message: 'Address for receiving Ordinals and payments',
-            //         network: {
-            //             type: 'Mainnet',
-            //             address: 'Mainnet'
-            //         },
-            //     },
-            //     onFinish: (response: any) => {
-            //         console.log("onFinish Xverse connect", response)
-
-            //         setIsSigningIn(false);
-
-            //         setAddress(response.addresses[0].address)
-            //         setPublicKey(response.addresses[0].publicKey)
-            //         setConnected(true);
-            //     },
-            //     onCancel: () => {
-            //         console.log("onCancel Xverse connect")
-            //         setIsSigningIn(false);
-            //         setConnected(false);
-            //     },
-            // });
-
-            // break;
             case 'Xverse':
+                // Need Double wallet connection
+                if (isSigningIn) {
+                    console.warn('Attempted to sign in while sign is is in progress.');
+                    return;
+                }
+                setIsSigningIn(true);
+                await getAddress({
+                    payload: {
+                        purposes: [AddressPurposes.ORDINALS, AddressPurposes.PAYMENT],
+                        message: 'Address for receiving Ordinals and payments',
+                        network: {
+                            type: 'Mainnet',
+                            address: 'Mainnet'
+                        },
+                    },
+                    onFinish: (response: any) => {
+                        console.log("onFinish Xverse connect", response)
+
+                        setAddress(response.addresses[0].address)
+                        setPublicKey(response.addresses[0].publicKey)
+                    },
+                    onCancel: () => {
+                        console.log("onCancel Xverse connect")
+                    },
+                });
+                showConnect({
+                    userSession,
+                    appDetails,
+                    onFinish() {
+                        let userData = null;
+                        try {
+                            userData = userSession.loadUserData();
+                            console.log("onFinish Xverse connect2", userSession, userData)
+                        } catch {
+                            // do nothing
+                        }
+                        setIsSigningIn(false);
+                        setConnected(true);
+                    },
+                    onCancel() {
+                        setIsSigningIn(false);
+                        setConnected(false);
+                    },
+                });
+                break;
             case 'Hiro':
                 if (isSigningIn) {
                     console.warn('Attempted to sign in while sign is is in progress.');
