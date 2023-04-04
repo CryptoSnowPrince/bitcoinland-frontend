@@ -28,6 +28,56 @@ const BACKEND_URL = 'http://localhost:3306/api/setAccountInfo/';
 const DISCORD_URL = "https://discord.com/api/oauth2";
 const SIGN_TEXT = "Please sign this message for https://connect.aptosland.io to verify your assets."
 
+const KIND_PLATINUM = 2;
+const KIND_GOLD = 1;
+const KIND_GENERAL = 0;
+
+const ROLE_PITBOSS = 20; // 20+
+const ROLE_SERGEANT = 10; // 10+
+const ROLE_OFFICERS = 5; // 5+
+const ROLE_METAZEN = 2; // 2+
+const ROLE_PIONEER = 1; // 1
+const ROLE_DWELLER = 0 // 0
+
+const getStrFromRole = (version: number, kind: number) => {
+  let versionStr = ""
+  let kindStr = ""
+  switch (version) {
+    case ROLE_PITBOSS:
+      versionStr = "PITBOSS";
+      break;
+    case ROLE_SERGEANT:
+      versionStr = "SERGEANT";
+      break;
+    case ROLE_OFFICERS:
+      versionStr = "OFFICERS";
+      break;
+    case ROLE_METAZEN:
+      versionStr = "METAZEN";
+      break;
+    case ROLE_PIONEER:
+      versionStr = "PIONEER";
+      break;
+    case ROLE_DWELLER:
+    default:
+      versionStr = "DWELLER";
+      break;
+  }
+  switch (kind) {
+    case KIND_PLATINUM:
+      kindStr = "PLATINUM";
+      break;
+    case KIND_GOLD:
+      kindStr = "GOLD";
+      break;
+    case KIND_GENERAL:
+    default:
+      kindStr = "GENERAL";
+      break;
+  }
+  return { versionStr, kindStr };
+}
+
 const App: FC = () => {
   const [verifying, setVerifying] = useState(false);
   const [done, setDone] = useState(false);
@@ -80,7 +130,12 @@ const App: FC = () => {
             signature: signature,
             publicKey: account.publicKey,
           })
-            .then(() => setDone(true))
+            .then((res) => {
+              setDone(true)
+              console.log('[prince] res', res.data)
+              const ret = getStrFromRole(res.data?.version, res.data?.kind)
+              window.alert(`ROLE: ${ret.versionStr} ${ret.kindStr}`)
+            })
             .catch((error) => setError(error.message))
             .finally(() => setVerifying(false));
         })
