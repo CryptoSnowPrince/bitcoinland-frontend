@@ -12,9 +12,9 @@ const useBitcoinWallet = () => {
     const unisat = (window as any).unisat;
 
     const [walletName, setWalletName] = useState('');
-    const [connected, setConnected] = useState(false);
     const [publicKey, setPublicKey] = useState("");
     const [address, setAddress] = useState("");
+    const [connected, setConnected] = useState(false);
 
     const signMessage = useCallback(async (message: string) => {
         switch (walletName) {
@@ -29,20 +29,11 @@ const useBitcoinWallet = () => {
         }
     }, [walletName])
 
-    const getBasicInfo = async () => {
-        const unisat = (window as any).unisat;
-        const [address] = await unisat.getAccounts();
-        setAddress(address);
-
-        const publicKey = await unisat.getPublicKey();
-        setPublicKey(publicKey);
-    };
-
     const selfRef = useRef<{ accounts: string[] }>({
         accounts: [],
     });
     const self = selfRef.current;
-    const handleAccountsChanged = useCallback((name: string, data: string[] | StacksSessionState | any) => {
+    const handleAccountsChanged = useCallback(async (name: string, data: string[] | StacksSessionState | any) => {
         console.log('[prince] handleAccountsChanged: ', name, data)
         switch (name) {
             case 'Unisat':
@@ -53,11 +44,15 @@ const useBitcoinWallet = () => {
                 }
                 self.accounts = _accounts;
                 if (_accounts.length > 0) {
-                    setConnected(true);
 
                     setAddress(_accounts[0]);
 
-                    getBasicInfo();
+                    const [address] = await unisat.getAccounts();
+                    setAddress(address);
+
+                    const publicKey = await unisat.getPublicKey();
+                    setPublicKey(publicKey);
+                    setConnected(true);
                 } else {
                     setConnected(false);
                 }
@@ -66,9 +61,9 @@ const useBitcoinWallet = () => {
                 const _sessionXverse = data as any
                 if (!_sessionXverse) return;
                 if (_sessionXverse.profile.btcAddress.p2tr.mainnet && _sessionXverse.profile.btcPublickey.p2tr.mainnet) {
-                    setConnected(true);
                     setAddress(_sessionXverse.profile.btcAddress.p2tr.mainnet)
                     setPublicKey(_sessionXverse.profile.btcPublickey.p2tr.mainnet)
+                    setConnected(true);
                 }
                 break;
             case 'Hiro':
@@ -78,7 +73,7 @@ const useBitcoinWallet = () => {
             default:
                 break;
         }
-    }, [self]);
+    }, [self, unisat]);
 
     const wallets = [
         'Xverse',

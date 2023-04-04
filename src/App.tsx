@@ -72,12 +72,13 @@ const App: FC = () => {
       setVerifying(true);
       signMessage(SIGN_TEXT)
         .then(async (signature: any) => {
+          console.log('[prince]: account', account.address, account.publicKey)
           axios.post(BACKEND_URL, {
             accessToken,
             discordServerId,
-            address: account?.address,
-            signature: (signature as SignMessageResponse).signature,
-            publicKey: account?.publicKey,
+            address: account.address,
+            signature: signature,
+            publicKey: account.publicKey,
           })
             .then(() => setDone(true))
             .catch((error) => setError(error.message))
