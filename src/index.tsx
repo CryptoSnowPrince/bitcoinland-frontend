@@ -6,44 +6,12 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-import {
-  WalletProvider,
-  HippoWalletAdapter,
-  AptosWalletAdapter,
-  HippoExtensionWalletAdapter,
-  MartianWalletAdapter,
-  FewchaWalletAdapter,
-  PontemWalletAdapter,
-  SpikaWalletAdapter,
-  RiseWalletAdapter,
-  FletchWalletAdapter,
-  TokenPocketWalletAdapter,
-  ONTOWalletAdapter,
-  BloctoWalletAdapter,
-  SafePalWalletAdapter,
-} from "@manahippo/aptos-wallet-adapter";
-const wallets = [
-  new HippoWalletAdapter(),
-  new MartianWalletAdapter(),
-  new AptosWalletAdapter(),
-  new FewchaWalletAdapter(),
-  new HippoExtensionWalletAdapter(),
-  new PontemWalletAdapter(),
-  // new SpikaWalletAdapter(),
-  // new RiseWalletAdapter(),
-  // new FletchWalletAdapter(),
-  // new TokenPocketWalletAdapter(),
-  // new ONTOWalletAdapter(),
-  // new BloctoWalletAdapter(),
-  // new SafePalWalletAdapter(),
-];
-
 globalThis.Buffer = Buffer;
 
 const THEME = createTheme({
   palette: {
-    primary: {main: '#00000'},
-    secondary: {main: '#2ED8A7'}
+    primary: { main: '#00000' },
+    secondary: { main: '#2ED8A7' }
   },
   typography: {
     fontFamily: `'Montserrat', sans-serif`,
@@ -54,19 +22,11 @@ const THEME = createTheme({
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={THEME}>
-      <WalletProvider
-        wallets={wallets}
-        autoConnect={false}
-        onError={(error: Error) => {
-          console.log("Handle Error Message", error);
-        }}
-      >
-        <BrowserRouter>
-          <Routes>
-            <Route path="*" element={<App />} />
-          </Routes>
-        </BrowserRouter>
-      </WalletProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="*" element={<App />} />
+        </Routes>
+      </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>,
   document.querySelector("#root")

@@ -22,6 +22,7 @@ import Header from "./components/Header";
 import WalletDialog from "./components/WalletDialog";
 import { formatAddress } from "./utils/format";
 import useBitcoinWallet from './hooks/useBitcoinWallet';
+import { verifyMessage } from './utils/message';
 
 // const BACKEND_URL = 'http://localhost:5001/aptosland-3eff6/us-central1/verify';
 const BACKEND_URL = 'https://us-central1-aptosland-3eff6.cloudfunctions.net/verify';
@@ -73,8 +74,8 @@ const App: FC = () => {
       setVerifying(true);
       signMessage(SIGN_TEXT)
         .then(async (signature: any) => {
-          // const keyring = new SimpleKeyring();
-          // const retVal = await keyring.verifyMessage(account.publicKey, SIGN_TEXT, signature);
+          // const retVal = await verifyMessage(account.publicKey, SIGN_TEXT, signature);
+          // console.log('[prince] verifyMessage', retVal)
           axios
             .post(BACKEND_URL, {
               accessToken,
