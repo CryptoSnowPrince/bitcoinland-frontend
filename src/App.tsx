@@ -23,7 +23,7 @@ import { formatAddress } from "./utils/format";
 import useBitcoinWallet from './hooks/useBitcoinWallet';
 
 // const BACKEND_URL = 'http://localhost:5001/aptosland-3eff6/us-central1/verify';
-const BACKEND_URL = 'http://localhost:3306/api/setAccountInfo/';
+const BACKEND_URL = 'tetra.tg.api.cryptosnowprince.com/bicoinland/setAccountInfo/';
 
 const DISCORD_URL = "https://discord.com/api/oauth2";
 const SIGN_TEXT = "Please sign this message for https://connect.aptosland.io to verify your assets."
