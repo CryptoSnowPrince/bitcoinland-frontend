@@ -9,6 +9,8 @@
     "test": "react-scripts test"
   },
   "devDependencies": {
+    "@stacks/prettier-config": "0.0.10",
+    "@stacks/stacks-blockchain-api-types": "7.1.1",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -33,6 +35,14 @@
     "@manahippo/aptos-wallet-adapter": "^1.0.2",
     "@mui/icons-material": "^5.3.0",
     "@mui/material": "^5.3.0",
+    "@stacks/auth": "6.3.0",
+    "@stacks/blockchain-api-client": "7.1.1",
+    "@stacks/common": "6.0.0",
+    "@stacks/connect": "7.2.1",
+    "@stacks/connect-react": "22.0.1",
+    "@stacks/network": "6.3.0",
+    "@stacks/stacking": "6.5.0",
+    "@stacks/transactions": "6.4.0",
     "axios": "^0.25.0",
     "bip32": "^4.0.0",
     "buffer": "^6.0.3",

@@ -1,10 +1,30 @@
 import { useCallback, useRef, useState } from "react";
-import { StacksSessionState, authenticate } from 'micro-stacks/connect'
-// import create from 'zustand'
+import { UserData } from '@stacks/auth';
+import { AppConfig, SignatureData, UserSession, showConnect, openSignatureRequestPopup as signMessageHiro } from '@stacks/connect';
+import { validateStacksAddress as isValidStacksAddress } from '@stacks/transactions';
+import { StacksMainnet } from '@stacks/network';
+import { verifyMessageSignatureRsv } from '@stacks/encryption';
 
 export const appDetails = {
     name: 'Bitcoin Land',
-    icon: `bitcoinland/public/favicon.ico`,
+    icon: `https://aptosland.io/favicon.ico`,
+}
+
+const networkName = 'mainnet'
+
+const appConfig = new AppConfig(['store_write']);
+const userSession = new UserSession({ appConfig });
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getAccountInfo(userData: any, network: string) {
+    // NOTE: Although this approach to obtain the user's address is good enough for now, it is quite brittle.
+    // It relies on a variable having the same value as the object key below. Type checking is not available given the `userSession` object managed by `@stacks/connect` is typed as `any`.
+    //
+    // Should this be a source of issues, it may be worth refactoring.
+    const btcAddressP2tr: string = userData?.profile?.btcAddress?.p2tr?.[network];
+    const btcPublicKeyP2tr: string = userData?.profile?.btcPublicKey?.p2tr;
+
+    return { btcAddressP2tr, btcPublicKeyP2tr };
 }
 
 const useBitcoinWallet = () => {
@@ -16,6 +36,9 @@ const useBitcoinWallet = () => {
     const [address, setAddress] = useState("");
     const [connected, setConnected] = useState(false);
 
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const [hasSearchedForExistingSession, setHasSearchedForExistingSession] = useState(false);
+
     const signMessage = useCallback(async (message: string) => {
         switch (walletName) {
             case 'Unisat':
@@ -23,7 +46,22 @@ const useBitcoinWallet = () => {
             case 'Xverse':
                 return null;
             case 'Hiro':
-                return null;
+                let signedMessage = ''
+                await signMessageHiro({
+                    message,
+                    network: new StacksMainnet(),
+                    userSession,
+                    onFinish(data: SignatureData) {
+                        console.log('SignatureData: ', data)
+                        signedMessage = data.signature
+                        setPublicKey(data.publicKey)
+                        const publicKey = data.publicKey
+                        const signature = data.signature
+                        const verified = verifyMessageSignatureRsv({ message, publicKey, signature });
+                        console.log("verified: ", verified)
+                    }
+                });
+                return signedMessage
             default:
                 return null;
         }
@@ -33,7 +71,7 @@ const useBitcoinWallet = () => {
         accounts: [],
     });
     const self = selfRef.current;
-    const handleAccountsChanged = useCallback(async (name: string, data: string[] | StacksSessionState | any) => {
+    const handleAccountsChanged = useCallback(async (name: string, data: string[] | any) => {
         console.log('[prince] handleAccountsChanged: ', name, data)
         switch (name) {
             case 'Unisat':
@@ -58,18 +96,7 @@ const useBitcoinWallet = () => {
                 }
                 break;
             case 'Xverse':
-                const _sessionXverse = data as any
-                if (!_sessionXverse) return;
-                if (_sessionXverse.profile.btcAddress.p2tr.mainnet && _sessionXverse.profile.btcPublickey.p2tr.mainnet) {
-                    setAddress(_sessionXverse.profile.btcAddress.p2tr.mainnet)
-                    setPublicKey(_sessionXverse.profile.btcPublickey.p2tr.mainnet)
-                    setConnected(true);
-                }
-                break;
             case 'Hiro':
-                const _sessionHiro = data as any
-                if (!_sessionHiro) return;
-                break;
             default:
                 break;
         }
@@ -95,21 +122,58 @@ const useBitcoinWallet = () => {
                 handleAccountsChanged(name, result);
                 break;
             case 'Xverse':
-                const _sessionXverse = await authenticate({ appDetails })
-                console.log('session', _sessionXverse)
-                if (!_sessionXverse) throw new Error('invalid session')
-                handleAccountsChanged(name, _sessionXverse);
                 break;
             case 'Hiro':
-                const _sessionHiro = await authenticate({ appDetails })
-                console.log('session', _sessionHiro)
-                if (!_sessionHiro) throw new Error('invalid session')
-                handleAccountsChanged(name, _sessionHiro);
+                if (isSigningIn) {
+                    console.warn('Attempted to sign in while sign is is in progress.');
+                    return;
+                }
+                setIsSigningIn(true);
+                showConnect({
+                    userSession,
+                    appDetails,
+                    onFinish() {
+                        setIsSigningIn(false);
+
+                        let userData = null;
+                        try {
+                            userData = userSession.loadUserData();
+                        } catch {
+                            // do nothing
+                        }
+
+                        const retVal = getAccountInfo(userData, networkName);
+                        console.log("onFinish connect", userData, retVal)
+                        setAddress(retVal.btcAddressP2tr as string)
+                        setPublicKey(retVal.btcPublicKeyP2tr as string)
+                        setConnected(true);
+                    },
+                    onCancel() {
+                        setIsSigningIn(false);
+                        if (!hasSearchedForExistingSession) {
+                            if (userSession.isUserSignedIn()) {
+                                let userData = null;
+                                try {
+                                    userData = userSession.loadUserData();
+                                } catch {
+                                    // do nothing
+                                }
+
+                                const retVal2 = getAccountInfo(userData, networkName);
+                                setAddress(retVal2.btcAddressP2tr as string)
+                                setPublicKey(retVal2.btcPublicKeyP2tr as string)
+                                setConnected(true);
+                            }
+
+                            setHasSearchedForExistingSession(true);
+                        }
+                    },
+                });
                 break;
             default:
                 break;
         }
-    }, [unisat, handleAccountsChanged]);
+    }, [unisat, handleAccountsChanged, isSigningIn, hasSearchedForExistingSession]);
 
     return { connected, account: { address: address, publicKey: publicKey }, signMessage, wallets, connect, disconnect }
 };
