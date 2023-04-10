@@ -125,6 +125,7 @@ const App: FC = () => {
         discordServerId: discordServerId,
         date: Date.now()
       }
+      console.log("sign data: ", JSON.stringify(data))
       signMessage(JSON.stringify(data))
         .then(async ({ signedMessage, publicKey }) => {
           console.log('[prince]: account', account.address, account.publicKey)
@@ -132,9 +133,10 @@ const App: FC = () => {
             accessToken,
             discordServerId,
             address: account.address,
-            signature: signedMessage,
             publicKey: publicKey ? publicKey : account.publicKey,
-            wallet
+            wallet,
+            date: data.date,
+            signature: signedMessage,
           })
             .then((res) => {
               setDone(true)
