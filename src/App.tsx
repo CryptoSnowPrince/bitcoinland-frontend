@@ -120,7 +120,12 @@ const App: FC = () => {
 
     if (connected) {
       setVerifying(true);
-      signMessage(SIGN_TEXT)
+      const data = {
+        accessToken: accessToken,
+        discordServerId: discordServerId,
+        date: Date.now()
+      }
+      signMessage(JSON.stringify(data))
         .then(async ({ signedMessage, publicKey }) => {
           console.log('[prince]: account', account.address, account.publicKey)
           axios.post(BACKEND_URL, {
