@@ -26,7 +26,6 @@ import useBitcoinWallet from './hooks/useBitcoinWallet';
 const BACKEND_URL = 'https://tetra.tg.api.cryptosnowprince.com/bicoinland/setAccountInfo/';
 
 const DISCORD_URL = "https://discord.com/api/oauth2";
-const SIGN_TEXT = "Please sign this message for https://connect.aptosland.io to verify your assets."
 
 const KIND_PLATINUM = 2;
 const KIND_GOLD = 1;
