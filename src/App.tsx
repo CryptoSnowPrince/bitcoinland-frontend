@@ -82,7 +82,15 @@ const App: FC = () => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string>();
   const [discordId, setDiscordId] = useState<string>();
-  const { connect, connected, account, signMessage, wallet, sendBTC } = useBitcoinWallet();
+  const {
+    connect,
+    connected,
+    account,
+    signMessage,
+    wallet,
+    sendBTC,
+    splitUtxoTx
+  } = useBitcoinWallet();
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const getDiscordUser = useCallback(async (accessToken: string) => {
     const getUserResult = await axios.get(`${DISCORD_URL}/@me`, {
@@ -157,12 +165,21 @@ const App: FC = () => {
       //   });
 
       // sendBTC Test
-      sendBTC('tb1qq0tfhxc8fan7e25t85njk3yehe686908q8a5hz', 1500, 1)
+      // sendBTC('tb1qq0tfhxc8fan7e25t85njk3yehe686908q8a5hz', 1500, 1)
+      //   .then((txId) => {
+      //     console.log('sendBTC txId: ', txId)
+      //   })
+      //   .catch((err) => {
+      //     console.log('sendBTC err: ', err)
+      //   })
+
+      // split utxos Test, rawTx
+      splitUtxoTx(true)
         .then((txId) => {
-          console.log('sendBTC txId: ', txId)
+          console.log('splitUtxoTx txId: ', txId)
         })
         .catch((err) => {
-          console.log('sendBTC err: ', err)
+          console.log('splitUtxoTx err: ', err)
         })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -272,9 +289,14 @@ const App: FC = () => {
   return (
     <AppWrapper>
       {connected && (
-        <Typography variant="body1">
-          Wallet: {formatAddress(account?.address as string)}
-        </Typography>
+        <>
+          <Typography variant="body1">
+            Wallet: {formatAddress(account?.address as string)}
+          </Typography>
+          <Typography variant="body1">
+            PaymentAddress: {formatAddress(account?.paymentAddress as string)}
+          </Typography>
+        </>
       )}
       {discordId && (
         <Typography variant="body1">Discord: {discordId}</Typography>

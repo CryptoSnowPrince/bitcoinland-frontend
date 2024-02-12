@@ -1,5 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import { AddressPurpose, BitcoinNetworkType, getAddress, signMessage as signMessageXverse, sendBtcTransaction } from 'sats-connect'
+import { AddressPurpose, BitcoinNetworkType, getAddress, signMessage as signMessageXverse, sendBtcTransaction, signTransaction } from 'sats-connect'
+import axios from "axios";
+import { Buffer } from 'buffer';
+// import { Psbt, networks } from 'bitcoinjs-lib';
+window.Buffer = Buffer; // Make Buffer available globally
+
+const { Psbt, networks } = require('bitcoinjs-lib');
+
 
 const useBitcoinWallet = () => {
 
@@ -70,7 +77,7 @@ const useBitcoinWallet = () => {
                 txId = await (window as any).unisat.sendBitcoin(toAddress, satoshis, {
                     feeRate,
                 })
-                console.log('signedMessage_: ', txId)
+                console.log('SendBTC: ', txId)
                 alert(txId);
                 break;
             case 'Xverse':
@@ -115,6 +122,113 @@ const useBitcoinWallet = () => {
                 break;
         }
         return { txId }
+    }, [walletName, paymentAddress])
+
+    const splitUtxoTx = useCallback(async (broadcast: boolean) => {
+        if (!paymentAddress) {
+            return
+        }
+        // Get utxo list from sender
+        const utxoList = await axios.get(
+            `https://blockstream.info/testnet/api/address/${paymentAddress}/utxo`
+        );
+        const psbt = new Psbt({ network: networks.testnet })
+
+        let idx
+        for (idx = 0; idx < utxoList.data.length; idx++) {
+
+            if (utxoList.data[idx].value < 20000)
+                continue;
+
+            const responseRaw = await axios.get(
+                `https://blockstream.info/testnet/api/tx/${utxoList.data[idx].txid}/hex`
+            );
+
+            psbt.addInput({
+                hash: utxoList.data[idx].txid,
+                index: parseInt(utxoList.data[idx].vout),
+                nonWitnessUtxo: Buffer.from(responseRaw.data, 'hex')
+            })
+            break;
+        }
+
+        for (let idx2 = 0; idx2 < 3; idx2++) {
+            psbt.addOutput({
+                address: paymentAddress,
+                value: 600,
+            });
+        }
+        psbt.addOutput({
+            address: paymentAddress,
+            value: utxoList.data[idx].value - 600 * 3 - 420,
+        });
+        const tx = psbt.toHex();
+
+        let txId = ''
+        switch (walletName) {
+            case 'Unisat':
+                const signedPsbt = await (window as any).unisat.signPsbt(tx);
+                console.log('splitUtxoTx signedPsbt: ', signedPsbt)
+                alert(signedPsbt);
+                if (broadcast) {
+                    txId = await (window as any).unisat.pushPsbt(signedPsbt);
+                    console.log('splitUtxoTx pushPsbt: ', txId)
+                    alert(txId);
+                }
+                break;
+            case 'Xverse':
+                // TODO with sats-connect-example
+                const signPsbtOptions = {
+                    payload: {
+                        message: '',
+                        network: {
+                            type: BitcoinNetworkType.Testnet
+                        },
+                        psbtBase64: psbt.toBase64(),
+                        broadcast,
+                        inputsToSign: [{
+                            address: paymentAddress,
+                            signingIndexes: [0],
+                        }],
+                    },
+                    onFinish: (response: any) => {
+                        console.log('Canceled')
+                        console.log(response)
+                        txId = response.txId
+                        alert(txId)
+                    },
+                    onCancel: () => {
+                        console.log('Canceled')
+                        alert('Canceled')
+                    },
+                }
+
+                try {
+                    await signTransaction(signPsbtOptions);
+                } catch (error) {
+                    console.log('splitUtxoTx err: ', error)
+                }
+                break
+            case 'Leather':
+                try {
+                    console.log('splitUtxoTx Leather: ')
+                    const requestParams = {
+                        hex: tx,
+                        network: 'testnet',
+                        broadcast
+                    };
+
+                    const signedPsbt = await (window as any).LeatherProvider.request('signPsbt', requestParams);
+                    console.log('splitUtxoTx signPsbt: ', signedPsbt)
+                    alert(signedPsbt)
+                } catch (error) {
+                    console.log('splitUtxoTx err: ', error)
+                }
+                break;
+            default:
+                break;
+        }
+        return txId
     }, [walletName, paymentAddress])
 
     const selfRef = useRef<{ accounts: string[] }>({
@@ -233,7 +347,17 @@ const useBitcoinWallet = () => {
         }
     }, [unisat, handleAccountsChanged, isSigningIn]);
 
-    return { wallet: walletName, connected, account: { address: address, publicKey: publicKey }, signMessage, sendBTC, wallets, connect, disconnect }
+    return {
+        wallet: walletName,
+        connected,
+        account: { address, paymentAddress, publicKey },
+        signMessage,
+        sendBTC,
+        wallets,
+        connect,
+        disconnect,
+        splitUtxoTx
+    }
 };
 
 export default useBitcoinWallet;
