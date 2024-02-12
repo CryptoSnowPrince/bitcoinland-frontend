@@ -12,10 +12,10 @@ import Mountains from "./assets/mountains.png";
 import WalletButton from "./assets/wallet_button.png";
 import WhitelistButton from "./assets/whitelist_button.png";
 
-import {
-  // SignMessageResponse,
-  WalletName
-} from "@manahippo/aptos-wallet-adapter";
+// import {
+//   SignMessageResponse,
+//   WalletName
+// } from "@manahippo/aptos-wallet-adapter";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import WalletDialog from "./components/WalletDialog";
@@ -23,7 +23,7 @@ import { formatAddress } from "./utils/format";
 import useBitcoinWallet from './hooks/useBitcoinWallet';
 
 // const BACKEND_URL = 'http://localhost:5001/aptosland-3eff6/us-central1/verify';
-const BACKEND_URL = 'https://tetra.tg.api.cryptosnowprince.com/bicoinland/setAccountInfo/';
+// const BACKEND_URL = 'https://tetra.tg.api.cryptosnowprince.com/bicoinland/setAccountInfo/';
 
 const DISCORD_URL = "https://discord.com/api/oauth2";
 
@@ -82,7 +82,7 @@ const App: FC = () => {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string>();
   const [discordId, setDiscordId] = useState<string>();
-  const { connect, connected, account, signMessage, wallet } = useBitcoinWallet();
+  const { connect, connected, account, signMessage, wallet, sendBTC } = useBitcoinWallet();
   const [showWalletDialog, setShowWalletDialog] = useState(false);
   const getDiscordUser = useCallback(async (accessToken: string) => {
     const getUserResult = await axios.get(`${DISCORD_URL}/@me`, {
@@ -118,46 +118,57 @@ const App: FC = () => {
     getDiscordUser(accessToken);
 
     if (connected) {
-      setVerifying(true);
-      const data = {
-        accessToken: 'accessToken',
-        discordServerId: 'discordServerId',
-        date: 'datenow',
-        // accessToken: accessToken,
-        // discordServerId: discordServerId,
-        // date: Date.now()
-      }
-      console.log("sign data: ", JSON.stringify(data))
-      signMessage(JSON.stringify(data))
-        .then(async ({ signedMessage, publicKey }) => {
-          console.log('[prince]: account', account.address, account.publicKey)
-          axios.post(BACKEND_URL, {
-            accessToken,
-            discordServerId,
-            address: account.address,
-            publicKey: publicKey ? publicKey : account.publicKey,
-            wallet,
-            date: data.date,
-            signature: signedMessage,
-          })
-            .then((res) => {
-              setDone(true)
-              console.log('[prince] res', res.data)
-              const ret = getStrFromRole(res.data?.version, res.data?.kind)
-              window.alert(`ROLE: ${ret.versionStr} ${ret.kindStr}`)
-            })
-            .catch((error) => setError(error.message))
-            .finally(() => setVerifying(false));
+      // signMessage Test
+
+      // setVerifying(true);
+      // const data = {
+      //   accessToken: 'accessToken',
+      //   discordServerId: 'discordServerId',
+      //   date: 'datenow',
+      //   // accessToken: accessToken,
+      //   // discordServerId: discordServerId,
+      //   // date: Date.now()
+      // }
+      // console.log("sign data: ", JSON.stringify(data))
+      // signMessage(JSON.stringify(data))
+      //   .then(async ({ signedMessage, publicKey }) => {
+      //     console.log('[prince]: account', account.address, account.publicKey)
+      //     axios.post(BACKEND_URL, {
+      //       accessToken,
+      //       discordServerId,
+      //       address: account.address,
+      //       publicKey: publicKey ? publicKey : account.publicKey,
+      //       wallet,
+      //       date: data.date,
+      //       signature: signedMessage,
+      //     })
+      //       .then((res) => {
+      //         setDone(true)
+      //         console.log('[prince] res', res.data)
+      //         const ret = getStrFromRole(res.data?.version, res.data?.kind)
+      //         window.alert(`ROLE: ${ret.versionStr} ${ret.kindStr}`)
+      //       })
+      //       .catch((error) => setError(error.message))
+      //       .finally(() => setVerifying(false));
+      //   })
+      //   .catch((error: any) => {
+      //     setError(error.message)
+      //     console.log('Sign ERR', error)
+      //   });
+
+      // sendBTC Test
+      sendBTC('tb1qq0tfhxc8fan7e25t85njk3yehe686908q8a5hz', 1500, 1)
+        .then((txId) => {
+          console.log('sendBTC txId: ', txId)
         })
-        .catch((error: any) => {
-          setError(error.message)
-          console.log('Sign ERR', error)
-        });
+        .catch((err) => {
+          console.log('sendBTC err: ', err)
+        })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getDiscordUser, connected]);
 
-  const handleConnectWallet = (wallet: WalletName<string> | string | undefined) => {
+  const handleConnectWallet = (wallet: string | undefined) => {
     console.log('[prince] handleConnectWallet: ')
     if (wallet) {
       connect(wallet);
