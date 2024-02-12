@@ -6,7 +6,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-// import * as MicroStacks from '@micro-stacks/react';
 globalThis.Buffer = Buffer;
 
 const THEME = createTheme({
@@ -23,16 +22,11 @@ const THEME = createTheme({
 ReactDOM.render(
   <React.StrictMode>
     <ThemeProvider theme={THEME}>
-      {/* <MicroStacks.ClientProvider
-        appName="Bitcoin land"
-        appIconUrl="https://aptosland.io/favicon.ico"
-      > */}
       <BrowserRouter>
         <Routes>
           <Route path="*" element={<App />} />
         </Routes>
       </BrowserRouter>
-      {/* </MicroStacks.ClientProvider> */}
     </ThemeProvider>
   </React.StrictMode>,
   document.querySelector("#root")

@@ -21,10 +21,6 @@ const WalletDialog = (props: SimpleDialogProps) => {
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Select your Bitcoin Wallet</DialogTitle>
-      <DialogContent style={{width: '300px', color: 'red'}}>
-        Using Hiro and Xverse wallets simultaneously causes issues with signing transactions and may lead to unexpected behavior.
-        For a safe experience, disconnect from ME website and disable one of the wallets on your browser, as they interfere with each other's functions in the browser.
-      </DialogContent>
       <List sx={{ pt: 0 }}>
         {wallets.map((wallet) => {
           // const option = wallet.adapter;

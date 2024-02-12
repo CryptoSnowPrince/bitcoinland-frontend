@@ -1,47 +1,6 @@
 import { useCallback, useRef, useState } from "react";
-import { AppConfig, SignatureData, UserSession, showConnect, openSignatureRequestPopup as signMessageHiro } from '@stacks/connect';
-import { StacksMainnet } from '@stacks/network';
-import { AddressPurposes, getAddress } from 'sats-connect'
+import { AddressPurpose, BitcoinNetworkType, getAddress, signMessage as signMessageXverse } from 'sats-connect'
 
-import { verifyMessageSignatureRsv } from '@stacks/encryption';
-
-//////////////////////////////
-// Xverse Wallet
-//////////////////////////////
-
-//////////////////////////////
-// Hiro Wallet
-//////////////////////////////
-
-export const appDetails = {
-    name: 'Bitcoin Land',
-    icon: `https://aptosland.io/favicon.ico`,
-}
-
-const networkName = 'mainnet'
-
-const appConfig = new AppConfig(['store_write']);
-const userSession = new UserSession({ appConfig });
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getAccountInfo(userData: any, network: string) {
-    // NOTE: Although this approach to obtain the user's address is good enough for now, it is quite brittle.
-    // It relies on a variable having the same value as the object key below. Type checking is not available given the `userSession` object managed by `@stacks/connect` is typed as `any`.
-    //
-    // Should this be a source of issues, it may be worth refactoring.
-    const btcAddressP2tr: string = userData?.profile?.btcAddress?.p2tr?.[network];
-    const btcPublicKeyP2tr: string = userData?.profile?.btcPublicKey?.p2tr;
-
-    return { btcAddressP2tr, btcPublicKeyP2tr };
-}
-
-//////////////////////////////
-// Unisat Wallet
-//////////////////////////////
-
-//////////////////////////////
-// Wallets
-//////////////////////////////
 const useBitcoinWallet = () => {
 
     const unisat = (window as any).unisat;
@@ -52,7 +11,6 @@ const useBitcoinWallet = () => {
     const [connected, setConnected] = useState(false);
 
     const [isSigningIn, setIsSigningIn] = useState(false);
-    const [hasSearchedForExistingSession, setHasSearchedForExistingSession] = useState(false);
 
     const signMessage = useCallback(async (message: string) => {
         let signedMessage_ = ''
@@ -60,26 +18,47 @@ const useBitcoinWallet = () => {
         switch (walletName) {
             case 'Unisat':
                 signedMessage_ = await (window as any).unisat.signMessage(message)
+                console.log('signedMessage_: ', signedMessage_)
+                alert(signedMessage_);
                 break;
             case 'Xverse':
-            case 'Hiro':
-                await signMessageHiro({
-                    message,
-                    network: new StacksMainnet(),
-                    userSession,
-                    onFinish(data: SignatureData) {
-                        console.log('SignatureData: ', data)
-                        signedMessage_ = data.signature
-                        publicKey_ = data.publicKey
-                        setPublicKey(data.publicKey)
-                    }
-                });
+                const signMessageOptions = {
+                    payload: {
+                        network: {
+                            type: BitcoinNetworkType.Testnet,
+                        },
+                        address,
+                        message,
+                    },
+                    onFinish: (response: any) => {
+                        // signature
+                        signedMessage_ = response
+                        console.log('signedMessage_: ', signedMessage_)
+                        alert(response);
+                    },
+                    onCancel: () => alert("Canceled"),
+                };
+                await signMessageXverse(signMessageOptions);
+                break
+            case 'Leather':
+                try {
+                    const response = await (window as any).LeatherProvider.request('signMessage', {
+                        message,
+                        paymentType: 'p2tr',
+                        network: 'testnet'
+                    })
+                    signedMessage_ = response.result.signature
+                    console.log('signedMessage_: ', signedMessage_)
+                    alert(signedMessage_);
+                } catch (error) {
+
+                }
                 break;
             default:
                 break;
         }
         return { signedMessage: signedMessage_, publicKey: publicKey_ }
-    }, [walletName])
+    }, [walletName, address])
 
     const selfRef = useRef<{ accounts: string[] }>({
         accounts: [],
@@ -110,7 +89,7 @@ const useBitcoinWallet = () => {
                 }
                 break;
             case 'Xverse':
-            case 'Hiro':
+            case 'Leather':
             default:
                 break;
         }
@@ -119,7 +98,7 @@ const useBitcoinWallet = () => {
     const wallets = [
         'Xverse',
         'Unisat',
-        'Hiro'
+        'Leather'
     ];
 
     const disconnect = useCallback(async (name: string) => {
@@ -136,19 +115,17 @@ const useBitcoinWallet = () => {
                 handleAccountsChanged(name, result);
                 break;
             case 'Xverse':
-                // Need Double wallet connection
                 if (isSigningIn) {
                     console.warn('Attempted to sign in while sign is is in progress.');
                     return;
                 }
                 setIsSigningIn(true);
-                await getAddress({
+                const getAddressOptions = {
                     payload: {
-                        purposes: [AddressPurposes.ORDINALS, AddressPurposes.PAYMENT],
+                        purposes: [AddressPurpose.Ordinals, AddressPurpose.Payment],
                         message: 'Address for receiving Ordinals and payments',
                         network: {
-                            type: 'Mainnet',
-                            address: 'Mainnet'
+                            type: BitcoinNetworkType.Testnet,
                         },
                     },
                     onFinish: (response: any) => {
@@ -156,80 +133,39 @@ const useBitcoinWallet = () => {
 
                         setAddress(response.addresses[0].address)
                         setPublicKey(response.addresses[0].publicKey)
+                        setConnected(true);
                     },
                     onCancel: () => {
                         console.log("onCancel Xverse connect")
-                    },
-                });
-                showConnect({
-                    userSession,
-                    appDetails,
-                    onFinish() {
-                        let userData = null;
-                        try {
-                            userData = userSession.loadUserData();
-                            console.log("onFinish Xverse connect2", userSession, userData)
-                        } catch {
-                            // do nothing
-                        }
-                        setIsSigningIn(false);
-                        setConnected(true);
-                    },
-                    onCancel() {
-                        setIsSigningIn(false);
                         setConnected(false);
                     },
-                });
+                }
+
+                await getAddress(getAddressOptions);
+                setIsSigningIn(false);
                 break;
-            case 'Hiro':
+            case 'Leather':
+                console.log('Leather: ', (window as any))
                 if (isSigningIn) {
                     console.warn('Attempted to sign in while sign is is in progress.');
                     return;
                 }
                 setIsSigningIn(true);
-                showConnect({
-                    userSession,
-                    appDetails,
-                    onFinish() {
-                        setIsSigningIn(false);
 
-                        let userData = null;
-                        try {
-                            userData = userSession.loadUserData();
-                        } catch {
-                            // do nothing
-                        }
-
-                        const retVal = getAccountInfo(userData, networkName);
-                        console.log("onFinish connect", userData, retVal)
-                        setAddress(retVal.btcAddressP2tr as string)
-                        setConnected(true);
-                    },
-                    onCancel() {
-                        setIsSigningIn(false);
-                        if (!hasSearchedForExistingSession) {
-                            if (userSession.isUserSignedIn()) {
-                                let userData = null;
-                                try {
-                                    userData = userSession.loadUserData();
-                                } catch {
-                                    // do nothing
-                                }
-
-                                const retVal2 = getAccountInfo(userData, networkName);
-                                setAddress(retVal2.btcAddressP2tr as string)
-                                setConnected(true);
-                            }
-
-                            setHasSearchedForExistingSession(true);
-                        }
-                    },
+                const address = await (window as any).LeatherProvider.request('getAddresses', {
+                    type: 'p2tr',
+                    network: 'testnet'
                 });
+                console.log('Leather addresses: ', address)
+                setAddress(address.result.addresses[1].address)
+                setPublicKey(address.result.addresses[1].publicKey)
+                setConnected(true);
+                setIsSigningIn(false);
                 break;
             default:
                 break;
         }
-    }, [unisat, handleAccountsChanged, isSigningIn, hasSearchedForExistingSession]);
+    }, [unisat, handleAccountsChanged, isSigningIn]);
 
     return { wallet: walletName, connected, account: { address: address, publicKey: publicKey }, signMessage, wallets, connect, disconnect }
 };

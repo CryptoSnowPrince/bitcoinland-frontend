@@ -111,18 +111,21 @@ const App: FC = () => {
       }
     }
 
-    if (accessToken === "" || discordServerId === "") {
-      setError("invalid discord authentication");
-      return;
-    }
+    // if (accessToken === "" || discordServerId === "") {
+    //   setError("invalid discord authentication");
+    //   return;
+    // }
     getDiscordUser(accessToken);
 
     if (connected) {
       setVerifying(true);
       const data = {
-        accessToken: accessToken,
-        discordServerId: discordServerId,
-        date: Date.now()
+        accessToken: 'accessToken',
+        discordServerId: 'discordServerId',
+        date: 'datenow',
+        // accessToken: accessToken,
+        // discordServerId: discordServerId,
+        // date: Date.now()
       }
       console.log("sign data: ", JSON.stringify(data))
       signMessage(JSON.stringify(data))
